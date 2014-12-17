@@ -18,7 +18,8 @@ from pdfminer.converter import PDFPageAggregator
 from pdfminer.layout import LAParams, LTTextBox, LTTextLine, LTFigure, LTImage,LTTextLineHorizontal,LTChar,LTLine,LTText
 
 
-def main(argv):
+def main():
+    
     def create_database(output_folder):
         if not os.path.exists(os.path.split(output_folder)[0]):
             os.makedirs(os.path.split(output_folder)[0])    
@@ -154,13 +155,12 @@ def main(argv):
         list: [title,company,{'from_month':'','from_year':'','to_month':'','to_year':''}]
         """
         FONTSIZE = 13.4 #fontsize of bold headers
-        ret= []
+        ret = []
         company = title = ''
         for idx,obj in enumerate(objs):
             company = title = ''
             if idx>0 and get_chars(objs[idx-1])[0].size > FONTSIZE:
                     brackets = re.search('([(]+(.)*[)]+)',obj.get_text())
-                    #print brackets
                     if brackets:
                         header = objs[idx-1].get_text().split(' at ')
                         if len(header) == 2:
@@ -172,7 +172,6 @@ def main(argv):
         """Collects schools,majors,dates, takes a list of LTObjects, returns a 
         list: [school,degree,major,{'from_month':'','from_year':'','to_month':'','to_year':''}]
         """
-        #collect schools and dates
         FONTSIZE = 13.4 #fontsize of bold headers
         ret = []
         degree = major = dates = school = ''
@@ -184,7 +183,6 @@ def main(argv):
                         print e
                         next_object = ''
                     school = obj.get_text()
-                    #print next_object
                     if next_object:
                         second_line = next_object.split(',')
                         if len(second_line) >= 3:
@@ -203,8 +201,15 @@ def main(argv):
                         
                     ret.append([school,degree,major,dates])            
         return ret
-    output_file = os.path.abspath(argv.output)
-    input_folder  = os.path.abspath(argv.input)
+        
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-i', '--input',required=True,help="Directory with pdf files")
+    parser.add_argument('-o', '--output',required=True) 
+    args = parser.parse_args()
+    if not os.path.exists(args.input):
+        exit("Please specify an existing direcory using the -i parameter.")
+    output_file = os.path.abspath(args.output)
+    input_folder  = os.path.abspath(args.input)
     print 'Input folder: %s, output file: %s ' % (input_folder,output_file)
     conn = create_database(output_file)
     conn.commit()
@@ -214,8 +219,6 @@ def main(argv):
         print 'No pdf files found in the provided folder.'
         sys.exit(2)
     for f in filelist:
-#print f
-        #if not j.endswith('ReidRubsamen, M.D..pdf'): continue
         fp = open(f, 'rb')
         # Create a PDF parser object associated with the file object.
         parser = PDFParser(fp)
@@ -286,10 +289,4 @@ def main(argv):
     conn.close()
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-i', '--input',required=True,help="Directory with pdf files")
-    parser.add_argument('-o', '--output',required=True) 
-    args = parser.parse_args()
-    if not os.path.exists(args.input):
-        exit("Please specify an existing direcory using the -i parameter.")
-    main(args)
+    main()
