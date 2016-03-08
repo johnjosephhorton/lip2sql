@@ -60,7 +60,7 @@ def main():
                         filenames.append(os.path.join(path,i))
                 else:            
                     filenames.append(os.path.join(path,i))
-	return filenames
+        return filenames
 
     def insert(table,column,row_value,c):
             """Checks if a row with 'value' exists in a 'column' of a 'table' using database cursor 'c', if so it returns an Id of 
